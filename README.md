@@ -1,5 +1,5 @@
 # DashboardX Widgets
-![Screenshot](https://github.com/dashboardX-app/dashboardX/assets/72494265/80b2c5f2-ce28-4f73-9ef1-acc1d2c4a5c0)
+![Screenshot](https://github.com/dashboardX-app/dashboardX-widgets/assets/72494265/80b2c5f2-ce28-4f73-9ef1-acc1d2c4a5c0)
 
 A powerful desktop widget app for windows, built with Vue and Tauri.
 ## Still in development
