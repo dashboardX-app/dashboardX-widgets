@@ -2,18 +2,15 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use tauri::{
-    App, CustomMenuItem, GlobalWindowEvent, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu,
+    CustomMenuItem, GlobalWindowEvent, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu,
     SystemTrayMenuItem,
 };
 
 use winapi::{
-    shared::{
-        minwindef::{BOOL, LPARAM},
-        windef::HWND,
-    },
+    shared::windef::HWND,
     um::winuser::{
-        EnumWindows, GetWindowTextW, GetWindowThreadProcessId, IsWindowVisible, SetWindowLongPtrA,
-        SetWindowPos, GWL_EXSTYLE, HWND_BOTTOM, SWP_NOREDRAW, SWP_NOSIZE, WS_EX_NOACTIVATE,
+        SetWindowLongPtrA, SetWindowPos, GWL_EXSTYLE, HWND_BOTTOM, SWP_NOREDRAW, SWP_NOSIZE,
+        WS_EX_NOACTIVATE,
     },
 };
 
@@ -33,9 +30,9 @@ fn main() {
     tauri::Builder::default()
         .system_tray(system_tray)
         .on_window_event(|event: GlobalWindowEvent| match event.event() {
-            tauri::WindowEvent::Focused(_focused) => unsafe { 
-                let mut handle = event.window().hwnd().unwrap().0;
-                set_desktop(handle as HWND); 
+            tauri::WindowEvent::Focused(_focused) => unsafe {
+                let handle = event.window().hwnd().unwrap().0;
+                set_desktop(handle as HWND);
             },
             _ => {}
         })
