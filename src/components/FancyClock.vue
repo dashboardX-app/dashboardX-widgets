@@ -16,7 +16,6 @@ const refresh = () => {
   min.value = date.getMinutes();
   sec.value = date.getSeconds();
   day.value = days[date.getDay()];
-  
 }
 
 refresh();

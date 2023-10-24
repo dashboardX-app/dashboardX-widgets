@@ -16,6 +16,10 @@
       "shell": {
         "all": false,
         "open": true
+      },
+      "fs": {
+        "all": true,
+        "scope": ["$APPCONFIG/*"]
       }
     },
     "bundle": {
@@ -40,8 +44,13 @@
         "decorations": false,
         "skipTaskbar": true,
         "closable": false,
-        "title": "dashboardX"
+        "title": "dashboardX",
+        "label": "main"
       }
-    ]
+    ],
+    "systemTray": {
+      "iconPath": "icons/icon.png",
+      "iconAsTemplate": false
+    }
   }
 }

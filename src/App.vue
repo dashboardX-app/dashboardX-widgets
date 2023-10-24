@@ -1,5 +1,13 @@
 <script setup lang="ts">
+import { listen } from "@tauri-apps/api/event";
+import { onMounted } from "vue";
 import FancyClock from "./components/FancyClock.vue";
+
+onMounted(async () => {
+  await listen("refresh", () => {
+    location.reload();
+  });
+});
 </script>
 
 <template>
@@ -8,5 +16,4 @@ import FancyClock from "./components/FancyClock.vue";
   </div>
 </template>
 
-<style>
-</style>
+<style></style>
