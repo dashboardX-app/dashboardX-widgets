@@ -1,8 +1,10 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use std::ffi::c_long;
+
 use tauri::{
-    CustomMenuItem, GlobalWindowEvent, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu,
+    CustomMenuItem, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu,
     SystemTrayMenuItem,
 };
 
@@ -10,8 +12,9 @@ use winapi::{
     shared::windef::HWND,
     um::winuser::{
         SetWindowLongPtrA, SetWindowPos, GWL_EXSTYLE, HWND_BOTTOM, SWP_NOREDRAW, SWP_NOSIZE,
-        WS_EX_NOACTIVATE,
+        WS_EX_NOACTIVATE, GetWindowTextW, SWP_NOSENDCHANGING, SWP_NOOWNERZORDER, WS_EX_TOOLWINDOW,
     },
+
 };
 
 fn main() {
@@ -29,24 +32,39 @@ fn main() {
 
     tauri::Builder::default()
         .system_tray(system_tray)
-        .on_window_event(|event: GlobalWindowEvent| match event.event() {
+        .setup(|app| {
+            let main_window = app.get_window("main").unwrap();
+            let handle = main_window.hwnd().unwrap().0;
+            #[cfg(windows)]
+            main_window.on_window_event(move |event| match event {
+                tauri::WindowEvent::Focused(_focused) => unsafe {
+                    set_desktop(handle as HWND);
+                },
+                _ => {}
+            });
+            Ok(())
+        })
+        /* .on_window_event(|event: GlobalWindowEvent| match event.event() {
             tauri::WindowEvent::Focused(_focused) => unsafe {
-                let handle = event.window().hwnd().unwrap().0;
-                set_desktop(handle as HWND);
+                if event.window().label() == "main" {
+                    let handle = event.window().hwnd().unwrap().0;
+                    set_desktop(handle as HWND);
+                }
             },
             _ => {}
-        })
+        })*/
         .on_system_tray_event(|app, event| match event {
             SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
                 "quit" => {
                     std::process::exit(0);
                 }
                 "settings" => {
-                    eprintln!("Open settings")
+                    let window = app.get_window("main").unwrap();
+                    window.emit("trayEvent", "settings").unwrap();
                 }
                 "refresh" => {
                     let window = app.get_window("main").unwrap();
-                    window.emit("refresh", {}).unwrap();
+                    window.emit("trayEvent", "refresh").unwrap();
                 }
                 _ => {}
             },
@@ -59,17 +77,34 @@ fn main() {
 unsafe fn set_desktop(window_handle: HWND) {
     eprintln!("Setting window position and attributes to desktop.");
 
+    SetWindowLongPtrA(window_handle, GWL_EXSTYLE, WS_EX_NOACTIVATE as isize);
+
     SetWindowPos(
         window_handle,
-        HWND_BOTTOM,
+        1 as HWND,
         0,
         0,
         0,
         0,
-        SWP_NOSIZE | 0x0010 | SWP_NOREDRAW,
+        0x0010 | SWP_NOSIZE | SWP_NOREDRAW | SWP_NOSENDCHANGING | SWP_NOOWNERZORDER,
+    );
+    
+    let mut window_title = [0u16; 1024];
+    GetWindowTextW(
+        window_handle,
+        window_title.as_mut_ptr(),
+        window_title.len() as i32,
     );
 
-    SetWindowLongPtrA(window_handle, GWL_EXSTYLE, WS_EX_NOACTIVATE as isize);
+    let raw_title = String::from_utf16(&window_title)
+        .ok()
+        .unwrap_or_else(|| "".to_string());
+
+    let (title, _garbage) = raw_title.split_once("\0").unwrap_or(("", ""));
+
+    eprintln!("title: {}", title);
+
+    
 }
 
 /***** Old method to get HWND *****/

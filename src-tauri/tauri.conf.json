@@ -20,6 +20,9 @@
       "fs": {
         "all": true,
         "scope": ["$APPCONFIG/*"]
+      },
+      "window": {
+        "all": true
       }
     },
     "bundle": {
@@ -42,9 +45,9 @@
         "fullscreen": true,
         "resizable": false,
         "decorations": false,
-        "skipTaskbar": true,
         "closable": false,
-        "title": "dashboardX",
+        "skipTaskbar": true,
+        "title": "DashboardX Widgets",
         "label": "main"
       }
     ],
