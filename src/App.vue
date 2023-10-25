@@ -11,6 +11,7 @@ const openSettings = () => {
     title: "Settings",
     width: 800,
     height: 600,
+    alwaysOnTop: true,
   });
   
   settingsWindow.once("tauri://created", () => {

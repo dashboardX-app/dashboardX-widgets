@@ -11,8 +11,8 @@ use tauri::{
 use winapi::{
     shared::windef::HWND,
     um::winuser::{
-        SetWindowLongPtrA, SetWindowPos, GWL_EXSTYLE, HWND_BOTTOM, SWP_NOREDRAW, SWP_NOSIZE,
-        WS_EX_NOACTIVATE, GetWindowTextW, SWP_NOSENDCHANGING, SWP_NOOWNERZORDER, WS_EX_TOOLWINDOW,
+        SetWindowLongPtrA, SetWindowPos, GWL_EXSTYLE, SWP_NOREDRAW, SWP_NOSIZE,
+        WS_EX_NOACTIVATE, GetWindowTextW, SWP_NOSENDCHANGING, SWP_NOOWNERZORDER, 
     },
 
 };
