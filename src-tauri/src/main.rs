@@ -8,9 +8,7 @@ use tauri::{
 use winapi::{
     ctypes::c_int,
     shared::{minwindef::LPARAM, windef::HWND},
-    um::winuser::{
-        EnumChildWindows, EnumWindows, GetClassNameW, SetParent,
-    },
+    um::winuser::{EnumChildWindows, EnumWindows, GetClassNameW, SetParent},
 };
 
 fn main() {
@@ -76,29 +74,14 @@ fn main() {
 unsafe fn set_desktop(window_handle: HWND) {
     eprintln!("Setting window to desktop");
 
-    let mut workerw:isize = 0;
+    let mut workerw: isize = 0;
 
-    EnumWindows(Some(enum_windows_callback), &mut workerw as *mut isize as LPARAM);
-
-    /***** Old method to set Z layer *****/
-    /*
-
-    SetWindowLongPtrA(window_handle, GWL_EXSTYLE, WS_EX_NOACTIVATE as isize);
-
-    SetWindowPos(
-        window_handle,
-        1 as HWND,
-        0,
-        0,
-        0,
-        0,
-        0x0010 | SWP_NOSIZE | SWP_NOREDRAW | SWP_NOSENDCHANGING | SWP_NOOWNERZORDER,
+    EnumWindows(
+        Some(enum_windows_callback),
+        &mut workerw as *mut isize as LPARAM,
     );
 
-    */
-
     SetParent(window_handle, workerw as HWND);
-
 }
 
 unsafe extern "system" fn enum_child_windows_callback(hwnd: HWND, lparam: LPARAM) -> c_int {
@@ -111,7 +94,7 @@ unsafe extern "system" fn enum_child_windows_callback(hwnd: HWND, lparam: LPARAM
     if class_name_str == "SHELLDLL_DefView" {
         let correct_workerw = lparam as *mut bool;
         *correct_workerw = true;
-        return 0
+        return 0;
     }
 
     1
@@ -135,16 +118,37 @@ unsafe extern "system" fn enum_windows_callback(hwnd: HWND, lparam: LPARAM) -> c
         if correct_workerw {
             let workerw_hwnd = lparam as *mut isize;
             *workerw_hwnd = hwnd as isize;
-            return 0
+            return 0;
         }
     }
 
     1
 }
 
+/***** Old method to set Z layer *****/
+
+/*
+(code goes in set_desktop function)
+
+SetWindowLongPtrA(window_handle, GWL_EXSTYLE, WS_EX_NOACTIVATE as isize);
+
+SetWindowPos(
+    window_handle,
+    1 as HWND,
+    0,
+    0,
+    0,
+    0,
+    0x0010 | SWP_NOSIZE | SWP_NOREDRAW | SWP_NOSENDCHANGING | SWP_NOOWNERZORDER,
+);
+
+*/
+
 /***** Old method to get HWND *****/
 
-/*fn set_desktop() {
+/*
+
+fn set_desktop() {
     // Call EnumWindows to enumerate open windows
     unsafe {
         EnumWindows(Some(enum_windows_callback), 0 as LPARAM);
