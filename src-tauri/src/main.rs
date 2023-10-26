@@ -2,17 +2,15 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use tauri::{
-    CustomMenuItem, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu,
-    SystemTrayMenuItem,
+    CustomMenuItem, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem,
 };
 
 use winapi::{
-    shared::windef::HWND,
+    ctypes::c_int,
+    shared::{minwindef::LPARAM, windef::HWND},
     um::winuser::{
-        SetWindowLongPtrA, SetWindowPos, GWL_EXSTYLE, SWP_NOREDRAW, SWP_NOSIZE,
-        WS_EX_NOACTIVATE, GetWindowTextW, SWP_NOSENDCHANGING, SWP_NOOWNERZORDER, 
+        EnumChildWindows, EnumWindows, GetClassNameW, SetParent,
     },
-
 };
 
 fn main() {
@@ -34,12 +32,15 @@ fn main() {
             let main_window = app.get_window("main").unwrap();
             let handle = main_window.hwnd().unwrap().0;
             #[cfg(windows)]
-            main_window.on_window_event(move |event| match event {
+            unsafe {
+                set_desktop(handle as HWND);
+            }
+            /*main_window.on_window_event(move |event| match event {
                 tauri::WindowEvent::Focused(_focused) => unsafe {
                     set_desktop(handle as HWND);
                 },
                 _ => {}
-            });
+            });*/
             Ok(())
         })
         /* .on_window_event(|event: GlobalWindowEvent| match event.event() {
@@ -73,7 +74,14 @@ fn main() {
 }
 
 unsafe fn set_desktop(window_handle: HWND) {
-    eprintln!("Setting window position and attributes to desktop.");
+    eprintln!("Setting window to desktop");
+
+    let mut workerw:isize = 0;
+
+    EnumWindows(Some(enum_windows_callback), &mut workerw as *mut isize as LPARAM);
+
+    /***** Old method to set Z layer *****/
+    /*
 
     SetWindowLongPtrA(window_handle, GWL_EXSTYLE, WS_EX_NOACTIVATE as isize);
 
@@ -86,23 +94,52 @@ unsafe fn set_desktop(window_handle: HWND) {
         0,
         0x0010 | SWP_NOSIZE | SWP_NOREDRAW | SWP_NOSENDCHANGING | SWP_NOOWNERZORDER,
     );
-    
-    let mut window_title = [0u16; 1024];
-    GetWindowTextW(
-        window_handle,
-        window_title.as_mut_ptr(),
-        window_title.len() as i32,
-    );
 
-    let raw_title = String::from_utf16(&window_title)
-        .ok()
-        .unwrap_or_else(|| "".to_string());
+    */
 
-    let (title, _garbage) = raw_title.split_once("\0").unwrap_or(("", ""));
+    SetParent(window_handle, workerw as HWND);
 
-    eprintln!("title: {}", title);
+}
 
-    
+unsafe extern "system" fn enum_child_windows_callback(hwnd: HWND, lparam: LPARAM) -> c_int {
+    let mut class_name = [0u16; 256];
+
+    let len = GetClassNameW(hwnd, class_name.as_mut_ptr(), class_name.len() as c_int);
+
+    let class_name_str = String::from_utf16_lossy(&class_name[..len as usize]);
+
+    if class_name_str == "SHELLDLL_DefView" {
+        let correct_workerw = lparam as *mut bool;
+        *correct_workerw = true;
+        return 0
+    }
+
+    1
+}
+
+unsafe extern "system" fn enum_windows_callback(hwnd: HWND, lparam: LPARAM) -> c_int {
+    let mut class_name = [0u16; 256];
+    let mut correct_workerw: bool = false;
+
+    let len = GetClassNameW(hwnd, class_name.as_mut_ptr(), class_name.len() as c_int);
+
+    let class_name_str = String::from_utf16_lossy(&class_name[..len as usize]);
+
+    if class_name_str == "WorkerW" {
+        EnumChildWindows(
+            hwnd,
+            Some(enum_child_windows_callback),
+            &mut correct_workerw as *mut bool as LPARAM,
+        );
+
+        if correct_workerw {
+            let workerw_hwnd = lparam as *mut isize;
+            *workerw_hwnd = hwnd as isize;
+            return 0
+        }
+    }
+
+    1
 }
 
 /***** Old method to get HWND *****/
