@@ -27,7 +27,7 @@ setInterval(refresh, 1000);
 </script>
 
 <template>
-  <div class="flex flex-col gap-2 text-center select-none text-blue-950 text-opacity-80 pb-24">
+  <div class="flex flex-col gap-2 text-center select-none text-slate-900 text-opacity-80 pb-4">
     <div class="day pl-8 text-8xl">{{ day }}</div>
     <div class="datetime text-2xl">{{ datetext }} ⚬ {{ String(hr).padStart(2, '0') }}:{{ String(min).padStart(2, '0') }}:{{ String(sec).padStart(2, '0') }}</div>
   </div>
